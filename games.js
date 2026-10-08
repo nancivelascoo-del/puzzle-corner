@@ -6,7 +6,7 @@
   function $(s, r) { return r.querySelector(s); }
   function $$(s, r) { return Array.prototype.slice.call(r.querySelectorAll(s)); }
   function sign(x) { return x > 0 ? 1 : x < 0 ? -1 : 0; }
-  var COLORS = ['#f4c95d', '#9fd3a8', '#a9cdee', '#f2a7a0', '#c9b6e8', '#f7b977', '#8fd0c9', '#e6b3d1', '#c8d97a', '#f0d08a', '#b0c4f2', '#d9b38c'];
+  var COLORS = ['#a8d5b0', '#f6b8ab', '#aecdef', '#f7d58a', '#cdbbec', '#9fd8cf', '#f3b9d3', '#cfe19a', '#f8c79c', '#b9c9f0', '#e3c9a6', '#bfe3b4'];
 
   function themePicker(gid, api) {
     var gs = api.gameState(gid), L = api.lang(), cur = gs.theme[L] || 'any';
@@ -27,10 +27,9 @@
     picker: function (api) { return themePicker('ws', api); },
     mount: function (el, st, api) {
       var t = api.t, p = st.p, n = p.size, anchor = null, down = null, dragging = false;
-      el.innerHTML = '<div class="two"><div class="board-area"><div class="ws-board"><svg class="ws-svg" viewBox="0 0 ' + n + ' ' + n + '" preserveAspectRatio="none" aria-hidden="true"></svg><div class="ws-grid" role="grid"></div></div><p class="status" aria-live="polite"></p></div>' +
-        '<div class="side"><div class="side-head"><h3>' + api.esc(p.themeName) + '</h3><p class="prog"></p></div><ul class="wlist"></ul>' +
-        '<div class="actions"><button class="btn" data-hint>\u{1F4A1} ' + t('hint') + '</button><button class="btn" data-reveal>\u{1F441}\uFE0F ' + t('reveal') + '</button></div></div></div>';
-      var grid = $('.ws-grid', el), svg = $('.ws-svg', el), board = $('.ws-board', el), area = $('.board-area', el), status = $('.status', el);
+      el.innerHTML = '<div class="two"><div class="board-area"><div class="ws-head"><div class="side-head"><h3>' + api.esc(p.themeName) + '</h3><p class="prog"></p></div><ul class="wlist" aria-label="' + api.esc(t('wordsToFind')) + '"></ul></div><div class="ws-board"><svg class="ws-svg" viewBox="0 0 ' + n + ' ' + n + '" preserveAspectRatio="none" aria-hidden="true"></svg><div class="ws-grid" role="grid"></div></div><p class="status" aria-live="polite"></p></div>' +
+        '<div class="side"><div class="actions"><button class="btn" data-hint>\u{1F4A1} ' + t('hint') + '</button><button class="btn" data-reveal>\u{1F441}\uFE0F ' + t('reveal') + '</button></div></div></div>';
+      var grid = $('.ws-grid', el), svg = $('.ws-svg', el), board = $('.ws-board', el), area = $('.board-area', el), status = $('.status', el), head = $('.ws-head', el), side = $('.side', el);
       var html = '';
       for (var i = 0; i < n * n; i++) html += '<div class="wc" data-i="' + i + '">' + p.grid[Math.floor(i / n)][i % n] + '</div>';
       grid.innerHTML = html;
@@ -42,6 +41,7 @@
         return '<line class="' + (cls || '') + '" x1="' + (c1 + 0.5) + '" y1="' + (r1 + 0.5) + '" x2="' + (c2 + 0.5) + '" y2="' + (r2 + 0.5) + '" stroke="' + color + '" stroke-width="0.76" stroke-linecap="round" opacity="' + (op || 0.85) + '"/>';
       }
       function endOf(w) { return (w.r + w.dr * (w.a.length - 1)) * n + (w.c + w.dc * (w.a.length - 1)); }
+      var justFound = -1;
       function draw(sel) {
         var s = '';
         p.words.forEach(function (w, k) {
@@ -49,13 +49,13 @@
           if (fi >= 0) s += line(w.r * n + w.c, endOf(w), COLORS[fi % COLORS.length]);
           else if (st.revealed) s += line(w.r * n + w.c, endOf(w), '#c9bfb3', 'rev');
         });
-        if (sel) s += line(sel[0], sel[1], '#ffd54d', 'sel', 0.75);
+        if (sel) s += line(sel[0], sel[1], '#ffd77a', 'sel', 0.8);
         svg.innerHTML = s;
         cells.forEach(function (c, k) { c.classList.toggle('anchor', k === anchor); c.classList.toggle('hint', st.hint !== null && !st.done && k === (p.words[st.hint].r * n + p.words[st.hint].c) && st.found.indexOf(st.hint) < 0); });
         $('.prog', el).textContent = t('ws_found', { a: st.found.length, b: p.words.length });
         $('.wlist', el).innerHTML = p.words.map(function (w, k) {
           var f = st.found.indexOf(k) >= 0;
-          return '<li class="' + (f ? 'found' : (st.revealed ? 'rev' : '')) + '"><span class="dot" style="background:' + (f ? COLORS[st.found.indexOf(k) % COLORS.length] : 'transparent') + '"></span>' + (f ? '\u2714 ' : '') + api.esc(w.w) + '</li>';
+          return '<li class="' + (f ? 'found' : (st.revealed ? 'rev' : '')) + (k === justFound ? ' pop' : '') + '"' + (f ? ' style="--hl:' + COLORS[st.found.indexOf(k) % COLORS.length] + '"' : '') + '>' + '<span class="w">' + api.esc(w.w) + '</span></li>';
         }).join('');
       }
       function cellAt(x, y) { var e = document.elementFromPoint(x, y); var c = e && e.closest && e.closest('.wc'); return c && grid.contains(c) ? +c.dataset.i : null; }
@@ -66,7 +66,7 @@
           var w = p.words[k], s = w.r * n + w.c, e = endOf(w);
           if ((s === a && e === b) || (s === b && e === a)) {
             if (st.found.indexOf(k) >= 0) { say(''); return; }
-            st.found.push(k); if (st.hint === k) st.hint = null; api.sound('found'); say('\u2714 ' + w.w); api.save(); draw();
+            st.found.push(k); if (st.hint === k) st.hint = null; api.sound('found'); say('\u2714 ' + w.w); api.save(); justFound = k; draw(); justFound = -1;
             if (st.found.length === p.words.length) { say(t('ws_allFound')); api.finish(false); }
             return;
           }
@@ -113,11 +113,18 @@
         }
       });
       function layout() {
-        var cell = api.fit(area, n, n, api.isLandscape() ? 0 : 230);
+        // portrait (phones, iPad upright): word list sits right above the grid so both stay on screen.
+        // landscape: list goes in the side panel.
+        var land = api.isLandscape();
+        if (land) { if (head.parentNode !== side) side.insertBefore(head, side.firstChild); }
+        else if (head.parentNode !== area) area.insertBefore(head, board);
+        el.classList.toggle('ws-compact', !land);
+        var reserve = land ? 0 : (api.isPhone() ? status.offsetHeight + 8 : 130);
+        var cell = api.fit(area, n, n, reserve, 1, board, api.isPhone() ? 54 : 96, 20);
         board.style.width = board.style.height = (cell * n) + 'px';
-        grid.style.fontSize = Math.round(cell * 0.56) + 'px';
+        grid.style.fontSize = Math.round(cell * 0.58) + 'px';
       }
-      layout(); draw();
+      draw(); layout();
       return { layout: layout, onKey: function (e) { if (e.key === 'Escape') { anchor = null; draw(); } } };
     }
   };
@@ -268,7 +275,9 @@
       }
       function layout() {
         buildKbd();
-        var cell = api.fit(area, W, H, api.isLandscape() ? 0 : (api.settings().kb === 'device' ? 120 : 330), 1, board);
+        var kbH = api.settings().kb === 'device' ? 0 : $('.kbd', el).offsetHeight;
+        var reserve = api.isLandscape() ? 0 : (api.isPhone() ? kbH + 20 : (api.settings().kb === 'device' ? 120 : 330));
+        var cell = api.fit(area, W, H, reserve, 1, board, null, api.isPhone() ? 20 : 24);
         board.style.width = (cell * W) + 'px'; board.style.height = (cell * H) + 'px';
         grid.style.fontSize = Math.round(cell * 0.58) + 'px';
       }
@@ -396,7 +405,7 @@
         }
       });
       function layout() {
-        var cell = api.fit(area, 9, 9, api.isLandscape() ? 0 : 300);
+        var cell = api.fit(area, 9, 9, api.isLandscape() ? 0 : (api.isPhone() ? Math.min(300, $('.pad', el).offsetHeight + 16) : 300));
         board.style.width = board.style.height = (cell * 9 + 6) + 'px';
         grid.style.fontSize = Math.round(cell * 0.6) + 'px';
       }

@@ -4,7 +4,9 @@
   var PC = window.PC, E = PC.E;
   var KEY = 'puzzleCorner.v1';
   var GAME_IDS = ['ws', 'cw', 'su', 'sc', 'mm'];
-  var ICONS = { ws: '\u{1F50D}', cw: '\u{270F}\u{FE0F}', su: '\u{1F522}', sc: '\u{1F524}', mm: '\u{1F0CF}' };
+  var ICONS = PC.ART.icon;
+  var GEAR = '<svg class="gear-ic" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1l.4 2.6h4l.4-2.6c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>';
+  var PHONE_MAX_SCALE = 1.3;
   var DIFFS = ['easy', 'medium', 'hard'];
   var SCALES = [0.85, 1, 1.15, 1.3, 1.5, 1.7];
 
@@ -17,6 +19,9 @@
   var S;
   try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
   if (!S || S.v !== 1) S = defaults();
+  // Tagalog was removed: always English. Older saves may still say 'tl'.
+  if (S.settings) S.settings.lang = 'en';
+  if (S.games) Object.keys(S.games).forEach(function (id) { var g = S.games[id]; if (g && g.saves) Object.keys(g.saves).forEach(function (k) { if (k.indexOf('tl:') === 0) delete g.saves[k]; }); });
   (function merge() { var d = defaults(); for (var k in d.settings) if (!(k in S.settings)) S.settings[k] = d.settings[k]; GAME_IDS.forEach(function (id) { if (!S.games[id]) S.games[id] = d.games[id]; }); if (!S.daily) S.daily = {}; })();
   var saveTimer = null;
   function persist(now) {
@@ -28,25 +33,25 @@
   document.addEventListener('visibilitychange', function () { if (document.hidden) persist(true); });
 
   /* ---------- helpers ---------- */
-  function lang() { return S.settings.lang === 'tl' ? 'tl' : 'en'; }
+  function lang() { return 'en'; }
   function t(k, vars) {
-    var s = (PC.STR[lang()][k] !== undefined ? PC.STR[lang()][k] : PC.STR.en[k]);
+    var s = PC.STR.en[k];
     if (s === undefined) return k;
     if (vars) for (var v in vars) s = s.split('{' + v + '}').join(vars[v]);
     return s;
   }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function $(sel, root) { return (root || document).querySelector(sel); }
-  function themes() { return lang() === 'tl' ? PC.THEMES_TL : PC.THEMES; }
-  function clueBank() { return lang() === 'tl' ? PC.CLUES_TL : PC.CLUES; }
+  function themes() { return PC.THEMES; }
+  function clueBank() { return PC.CLUES; }
   function themeName(id) { var th = themes().filter(function (x) { return x.id === id; })[0]; return th ? th.name : id; }
-  function memSetName(id) { if (lang() === 'tl' && PC.MEMORY_TL[id]) return PC.MEMORY_TL[id].name; var s = PC.MEMORY_SETS.filter(function (x) { return x.id === id; })[0]; return s ? s.name : id; }
-  function memLabel(setId, i) { if (lang() === 'tl' && PC.MEMORY_TL[setId]) return PC.MEMORY_TL[setId].labels[i]; var s = PC.MEMORY_SETS.filter(function (x) { return x.id === setId; })[0]; return s.items[i][1]; }
+  function memSetName(id) { var s = PC.MEMORY_SETS.filter(function (x) { return x.id === id; })[0]; return s ? s.name : id; }
+  function memLabel(setId, i) { var s = PC.MEMORY_SETS.filter(function (x) { return x.id === setId; })[0]; return s.items[i][1]; }
   function today() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
   function dayIndex(ds) { var p = ds.split('-').map(Number); return Math.round((Date.UTC(p[0], p[1] - 1, p[2]) - Date.UTC(2026, 0, 1)) / 86400000); }
   function niceDate(ds) {
     var p = ds.split('-').map(Number), d = new Date(p[0], p[1] - 1, p[2]);
-    return lang() === 'tl' ? PC.DAYS_TL[d.getDay()] + ', ' + PC.MONTHS_TL[d.getMonth()] + ' ' + d.getDate() : PC.DAYS_EN[d.getDay()] + ', ' + PC.MONTHS_EN[d.getMonth()] + ' ' + d.getDate();
+    return PC.DAYS_EN[d.getDay()] + ', ' + PC.MONTHS_EN[d.getMonth()] + ' ' + d.getDate();
   }
   function fmtTime(s) { s = Math.floor(s || 0); var m = Math.floor(s / 60), h = Math.floor(m / 60); return (h ? h + ':' + String(m % 60).padStart(2, '0') : m) + ':' + String(s % 60).padStart(2, '0'); }
   function langScoped(gid) { return gid === 'ws' || gid === 'cw' || gid === 'sc'; }
@@ -86,6 +91,8 @@
     var el = $('#toast'); el.textContent = msg; el.className = 'show';
     clearTimeout(toastT); toastT = setTimeout(function () { el.className = ''; }, ms || 2800);
   }
+  // any tap dismisses a showing tip so it never sits on top of the letters
+  document.addEventListener('pointerdown', function () { var el = $('#toast'); if (el.className === 'show') { el.className = ''; clearTimeout(toastT); } }, { capture: true, passive: true });
   function sheet(opts) {
     var el = $('#sheet');
     el.innerHTML = '<div class="sheet-box" role="dialog" aria-modal="true">' + (opts.icon ? '<div class="sheet-icon">' + opts.icon + '</div>' : '') +
@@ -104,34 +111,60 @@
   function confirmIt(text, yes, action) { sheet({ text: text, buttons: [{ label: t('cancel') }, { label: yes, primary: true, action: action }] }); }
 
   /* ---------- settings ---------- */
-  function applyScale() { document.documentElement.style.setProperty('--scale', S.settings.scale); }
-  function applyLang() { document.documentElement.lang = lang() === 'tl' ? 'tl' : 'en'; }
+  function isPhone() { return Math.min(window.innerWidth, window.innerHeight) < 600; }
+  function maxScale() { return isPhone() ? PHONE_MAX_SCALE : SCALES[SCALES.length - 1]; }
+  function effScale() { return Math.min(S.settings.scale, maxScale()); }
+  function applyScale() {
+    document.documentElement.style.setProperty('--scale', effScale());
+    document.documentElement.classList.toggle('phone', isPhone());
+  }
+  function applyLang() { document.documentElement.lang = 'en'; }
   function bumpScale(dir) {
-    var i = SCALES.indexOf(S.settings.scale); if (i < 0) i = 1;
-    i = Math.max(0, Math.min(SCALES.length - 1, i + dir)); S.settings.scale = SCALES[i]; applyScale(); persist();
-    sound('tap'); if (cur) setTimeout(function () { cur.ui && cur.ui.layout && cur.ui.layout(); }, 30);
+    var list = SCALES.filter(function (x) { return x <= maxScale(); });
+    var i = list.indexOf(effScale()); if (i < 0) i = list.indexOf(1);
+    i = Math.max(0, Math.min(list.length - 1, i + dir)); S.settings.scale = list[i]; applyScale(); persist();
+    sound('tap'); if (cur) setTimeout(function () { cur && cur.ui && cur.ui.layout && cur.ui.layout(); }, 30);
     updateToolbar();
   }
-  function toolsHtml() {
-    return '<div class="tools">' +
-      '<button class="btn tool" data-act="smaller" aria-label="' + esc(t('smaller')) + '">A\u2212</button>' +
-      '<button class="btn tool" data-act="larger" aria-label="' + esc(t('larger')) + '">A+</button>' +
-      '<button class="btn tool sound" data-act="sound" aria-pressed="' + S.settings.sound + '">' + soundLabel() + '</button></div>';
-  }
-  function soundLabel() { return (S.settings.sound ? '\u{1F50A} ' : '\u{1F507} ') + '<span class="long">' + esc(t('sound')) + ': </span>' + esc(S.settings.sound ? t('on') : t('off')); }
+  function gearHtml() { return '<button class="btn gear" data-act="settings" aria-label="' + esc(t('settings')) + '">' + GEAR + '<span class="long">' + esc(t('settings')) + '</span></button>'; }
+  function soundLabel() { return (S.settings.sound ? '\u{1F50A} ' : '\u{1F507} ') + esc(t('sound')) + ': ' + esc(S.settings.sound ? t('on') : t('off')); }
   function updateToolbar() {
-    document.querySelectorAll('[data-act="smaller"]').forEach(function (b) { b.disabled = S.settings.scale <= SCALES[0]; });
-    document.querySelectorAll('[data-act="larger"]').forEach(function (b) { b.disabled = S.settings.scale >= SCALES[SCALES.length - 1]; });
+    document.querySelectorAll('[data-act="smaller"]').forEach(function (b) { b.disabled = effScale() <= SCALES[0]; });
+    document.querySelectorAll('[data-act="larger"]').forEach(function (b) { b.disabled = effScale() >= maxScale(); });
+  }
+  function settingsOpen() { return !!$('#sheet .settings-box'); }
+  function openSettings() {
+    var el = $('#sheet'), inGame = !!cur, G = cur ? PC.G[cur.gid] : null, html = '';
+    if (inGame && !cur.daily) {
+      html += '<div class="srow"><div class="slbl">' + esc(t('difficulty')) + '</div><div class="seg wide-seg" role="group">' + DIFFS.map(function (d) { return '<button class="btn ' + (d === cur.diff ? 'on' : '') + '" data-sdiff="' + d + '" aria-pressed="' + (d === cur.diff) + '">' + esc(t(d)) + '</button>'; }).join('') + '</div></div>';
+      if (G.picker) html += '<div class="srow"><button class="btn wide" data-spicker="1">' + esc(G.picker(api).label) + ' \u25BE</button></div>';
+    }
+    var pct = Math.round(effScale() * 100);
+    html += '<div class="srow"><div class="slbl">' + esc(t('textSize')) + '</div><div class="sizer"><button class="btn tool" data-act="smaller" aria-label="' + esc(t('smaller')) + '">A\u2212</button><span class="sizeval">' + pct + '%</span><button class="btn tool" data-act="larger" aria-label="' + esc(t('larger')) + '">A+</button></div></div>';
+    html += '<div class="srow two-btn"><button class="btn sound" data-act="sound" aria-pressed="' + S.settings.sound + '">' + soundLabel() + '</button>' +
+      '<button class="btn" data-act="timer" aria-pressed="' + S.settings.timer + '">\u23F1\uFE0F ' + esc(S.settings.timer ? t('timerOn') : t('timerOff')) + '</button></div>';
+    if (inGame) html += '<div class="srow howbox"><div class="slbl">' + esc(t('howShort')) + '</div><p>' + esc(t(cur.gid + '_how')) + '</p></div>';
+    el.innerHTML = '<div class="sheet-box settings-box" role="dialog" aria-modal="true" aria-label="' + esc(t('settingsTitle')) + '"><h2>' + GEAR + ' ' + esc(t('settingsTitle')) + '</h2>' + html +
+      '<div class="sheet-btns"><button class="btn primary" data-sclose="1">' + esc(t('done')) + '</button></div></div>';
+    el.className = 'open';
+    el.onclick = function (e) {
+      if (e.target.closest('[data-sclose]') || e.target === el) { closeSheet(); return; }
+      var d = e.target.closest('[data-sdiff]');
+      if (d) { closeSheet(); if (d.dataset.sdiff !== cur.diff) { sound('tap'); S.games[cur.gid].diff = d.dataset.sdiff; persist(); render(); } return; }
+      if (e.target.closest('[data-spicker]')) { closeSheet(); openPicker(); }
+    };
+    updateToolbar();
   }
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-act]'); if (!b) return;
     var a = b.dataset.act;
     if (a === 'smaller') bumpScale(-1);
     else if (a === 'larger') bumpScale(1);
-    else if (a === 'sound') { S.settings.sound = !S.settings.sound; persist(); if (S.settings.sound) { audio(); sound('good'); } b.setAttribute('aria-pressed', S.settings.sound); b.innerHTML = soundLabel(); }
-    else if (a === 'timer') { S.settings.timer = !S.settings.timer; persist(); sound('tap'); render(); }
-    else if (a === 'lang') { if (S.settings.lang !== b.dataset.lang) { S.settings.lang = b.dataset.lang; applyLang(); persist(); sound('tap'); render(); } }
-    else if (a === 'home') { go(''); }
+    else if (a === 'sound') { S.settings.sound = !S.settings.sound; persist(); if (S.settings.sound) { audio(); sound('good'); } }
+    else if (a === 'timer') { S.settings.timer = !S.settings.timer; persist(); sound('tap'); var tm = $('.timer'); if (tm) tm.hidden = !S.settings.timer; }
+    else if (a === 'settings') { sound('tap'); openSettings(); return; }
+    else if (a === 'home') { go(''); return; }
+    if (settingsOpen()) openSettings();
   });
 
   /* ---------- routing ---------- */
@@ -155,24 +188,22 @@
     var di = dailyInfo(), dsave = S.games[di.gid].saves[saveKey(di.gid, di.diff, true)];
     var dsub = di.gid === 'ws' || di.gid === 'sc' ? t('sc_cat', { c: themeName(di.theme) }) : di.gid === 'cw' ? t('topic') + ': ' + t('topicMixed') : t(di.diff);
     var feat = themes().filter(function (x) { return x.featured; });
+    var ART = PC.ART;
     var html = '<div class="screen home">' +
-      '<header class="home-top"><div class="brand"><img src="icons/icon-192.png" alt="" class="logo"><div><h1>Puzzle Corner</h1><p class="greet">' + esc(greet) + '</p></div></div>' + toolsHtml() + '</header>' +
-      '<section class="langbar" aria-label="' + esc(t('language')) + '"><span class="lbl">Language / Wika</span>' +
-      '<div class="seg big"><button class="btn ' + (lang() === 'en' ? 'on' : '') + '" data-act="lang" data-lang="en" aria-pressed="' + (lang() === 'en') + '">English</button>' +
-      '<button class="btn ' + (lang() === 'tl' ? 'on' : '') + '" data-act="lang" data-lang="tl" aria-pressed="' + (lang() === 'tl') + '">Tagalog</button></div></section>' +
+      '<header class="home-top"><div class="brand">' + ART.logo('logo') + '<div><h1>Puzzle Corner</h1><p class="greet">' + esc(greet) + '</p></div></div>' + gearHtml() + '</header>' +
       '<p class="sub">' + esc(t('homeSub')) + '</p>' +
-      '<section class="daily card ' + (di.done ? 'done' : '') + '"><div class="daily-ic">' + ICONS[di.gid] + '</div><div class="daily-txt"><div class="kicker">' + esc(t('daily')) + ' \u00B7 ' + esc(niceDate(di.date)) + '</div>' +
+      '<section class="daily card ' + (di.done ? 'done' : '') + '">' + ART.rosette(null, null, null, 'daily-deco') + '<div class="daily-ic">' + ICONS[di.gid] + '</div><div class="daily-txt"><div class="kicker">' + esc(t('daily')) + ' \u00B7 ' + esc(niceDate(di.date)) + '</div>' +
       '<h2>' + esc(t(di.gid + '_name')) + '</h2><p>' + esc(dsub) + '</p>' + (di.done ? '<p class="donemsg">\u2714\uFE0F ' + esc(t('dailyDone')) + '</p>' : '') + '</div>' +
       '<button class="btn primary big" data-daily="1">' + esc(di.done ? t('dailyAgain') : dsave ? t('dailyContinue') : t('dailyPlay')) + '</button></section>' +
-      '<h2 class="sec">' + esc(t('favorites')) + '</h2><p class="secsub">' + esc(t('favSub')) + '</p><div class="favs">' +
+      '<h2 class="sec">' + ART.sprig('sec-ic') + esc(t('favorites')) + '</h2><p class="secsub">' + esc(t('favSub')) + '</p><div class="favs">' +
       feat.map(function (f) { return '<button class="btn fav" data-fav="' + f.id + '"><span class="fic">' + f.icon + '</span><span>' + esc(f.name) + '</span></button>'; }).join('') + '</div>' +
-      '<h2 class="sec">' + esc(t('games')) + '</h2><div class="cards">' +
+      '<h2 class="sec">' + ART.sprig('sec-ic') + esc(t('games')) + '</h2><div class="cards">' +
       GAME_IDS.map(function (id) {
         var g = S.games[id], inprog = Object.keys(g.saves).some(function (k) { var s = g.saves[k]; return s && !s.done && k.indexOf('daily') < 0 && (!langScoped(id) || k.indexOf(lang() + ':') === 0); });
-        return '<button class="card gcard" data-game="' + id + '"><span class="gic">' + ICONS[id] + '</span><span class="gtxt"><span class="gname">' + esc(t(id + '_name')) + '</span><span class="gdesc">' + esc(t(id + '_desc')) + '</span>' +
+        return '<button class="card gcard gc-' + id + '" data-game="' + id + '"><span class="gic">' + ICONS[id] + '</span><span class="gtxt"><span class="gname">' + esc(t(id + '_name')) + '</span><span class="gdesc">' + esc(t(id + '_desc')) + '</span>' +
           '<span class="gmeta">' + (g.solved ? esc(t('solvedN', { n: g.solved })) : '') + (inprog ? ' <span class="pill">' + esc(t('inProgress')) + '</span>' : '') + '</span></span><span class="go">' + esc(inprog ? t('cont') : t('play')) + ' \u203A</span></button>';
       }).join('') + '</div>' +
-      '<div class="home-foot"><button class="btn" data-act="timer" aria-pressed="' + S.settings.timer + '">\u23F1\uFE0F ' + esc(S.settings.timer ? t('timerOn') : t('timerOff')) + '</button><p>' + esc(t('offlineNote')) + '</p></div></div>';
+      '<footer class="home-foot"><div class="garden">' + ART.cactus('pot') + ART.logo('pot big') + ART.rosette('#9cc29f', '#c8e0c0', '#e8a59a', 'pot') + '</div><p>' + esc(t('offlineNote')) + '</p></footer></div>';
     $('#app').innerHTML = html;
     $('#app').onclick = function (e) {
       var g = e.target.closest('[data-game]'); if (g) { sound('tap'); go(g.dataset.game); return; }
@@ -205,18 +236,18 @@
     cur = { gid: gid, diff: diff, daily: daily, st: st, key: key };
     var picker = G.picker ? G.picker(api) : null;
     if (!S.settings.howSeen) S.settings.howSeen = {};
-    var howOpen = window.innerWidth >= 600 || !S.settings.howSeen[gid];
+    var phone = isPhone(), firstTime = !S.settings.howSeen[gid];
     S.settings.howSeen[gid] = 1; persist();
+    var newBtn = daily ? '' : '<button class="btn newbtn" data-new="1"><span class="spark" aria-hidden="true">\u2728</span> <span class="long">' + esc(t('newPuzzle')) + '</span><span class="short">' + esc(t('newShort')) + '</span></button>';
     var html = '<div class="screen game g-' + gid + '">' +
-      '<header class="topbar"><button class="btn homebtn" data-act="home">\u2190 ' + esc(t('home')) + '</button><h1>' + ICONS[gid] + ' ' + esc(t(gid + '_name')) + '</h1>' + toolsHtml() + '</header>' +
-      '<div class="gamebar">' + (daily ? '<span class="dtag">\u2B50 ' + esc(t('dailyTag')) + ' \u00B7 ' + esc(niceDate(today())) + '</span>' :
-        '<div class="seg" role="group">' + DIFFS.map(function (d) { return '<button class="btn ' + (d === diff ? 'on' : '') + '" data-diff="' + d + '" aria-pressed="' + (d === diff) + '">' + esc(t(d)) + '</button>'; }).join('') + '</div>' +
-        (picker ? '<button class="btn" data-picker="1">' + esc(picker.label) + ' \u25BE</button>' : '') +
-        '<button class="btn" data-new="1">\u2728 <span class="long">' + esc(t('newPuzzle')) + '</span><span class="short">' + esc(t('newShort')) + '</span></button>') +
-      '<span class="timer" ' + (S.settings.timer ? '' : 'hidden') + '>\u23F1\uFE0F <b>' + fmtTime(st.elapsed) + '</b></span></div>' +
-      (window.innerWidth >= 600 ? '<p class="how"><b>' + esc(t('howTo')) + '</b> ' + esc(t(gid + '_how')) + '</p>' :
-        '<details class="how"' + (howOpen ? ' open' : '') + '><summary><b>' + esc(t('howTo')) + '</b></summary> <span>' + esc(t(gid + '_how')) + '</span></details>') +
+      '<header class="topbar"><button class="btn homebtn" data-act="home" aria-label="' + esc(t('home')) + '">\u2190 ' + esc(t('home')) + '</button><h1><span class="tic">' + ICONS[gid] + '</span><span class="tname">' + (PC.STR.en[gid + '_short'] ? '<span class="long">' + esc(t(gid + '_name')) + '</span><span class="short">' + esc(t(gid + '_short')) + '</span>' : esc(t(gid + '_name'))) + '</span></h1>' +
+      '<span class="timer" ' + (S.settings.timer ? '' : 'hidden') + '>\u23F1\uFE0F <b>' + fmtTime(st.elapsed) + '</b></span>' + (phone ? newBtn : '') + gearHtml() + '</header>' +
+      (daily ? '<div class="gamebar"><span class="dtag">\u2B50 ' + esc(t('dailyTag')) + ' \u00B7 ' + esc(niceDate(today())) + '</span></div>' :
+        phone ? '' : '<div class="gamebar"><div class="seg" role="group">' + DIFFS.map(function (d) { return '<button class="btn ' + (d === diff ? 'on' : '') + '" data-diff="' + d + '" aria-pressed="' + (d === diff) + '">' + esc(t(d)) + '</button>'; }).join('') + '</div>' +
+        (picker ? '<button class="btn" data-picker="1">' + esc(picker.label) + ' \u25BE</button>' : '') + newBtn + '</div>') +
+      (phone ? '' : '<p class="how"><b>' + esc(t('howTo')) + '</b> ' + esc(t(gid + '_how')) + '</p>') +
       '<div class="gbody" id="gbody"></div></div>';
+    if (phone && firstTime) setTimeout(function () { toast(t(gid + '_how'), 6500); }, 400);
     $('#app').innerHTML = html;
     $('#app').onclick = function (e) {
       var d = e.target.closest('[data-diff]');
@@ -227,7 +258,13 @@
         if (started) confirmIt(t('confirmNew'), t('yesNew'), doNew); else doNew();
         return;
       }
-      if (e.target.closest('[data-picker]')) {
+      if (e.target.closest('[data-picker]')) openPicker();
+    };
+    cur.ui = G.mount($('#gbody'), st, api);
+    if (st.done) setTimeout(function () { cur && cur.ui && cur.ui.showDone && cur.ui.showDone(); }, 0);
+  }
+  function openPicker() {
+    var G = PC.G[cur.gid], gs = S.games[cur.gid];
         var p = G.picker(api);
         sheet({ title: p.title, html: '<div class="opts">' + p.options.map(function (o) { return '<button class="btn opt ' + (o.id === p.current ? 'on' : '') + '" data-opt="' + esc(o.id) + '">' + (o.icon ? '<span class="fic">' + o.icon + '</span>' : '') + esc(o.name) + '</button>'; }).join('') + '</div>',
           buttons: [{ label: t('cancel') }], onOption: function (id) {
@@ -235,11 +272,6 @@
             var apply = function () { p.set(id); persist(); gs.saves[cur.key] = null; pendingNew = true; render(); };
             if (cur.st && !cur.st.done && G.started && G.started(cur.st)) confirmIt(t('confirmNew'), t('yesNew'), apply); else apply();
           } });
-      }
-    };
-    if ($('details.how')) $('details.how').addEventListener('toggle', function () { if (cur && cur.ui && cur.ui.layout) cur.ui.layout(); });
-    cur.ui = G.mount($('#gbody'), st, api);
-    if (st.done) setTimeout(function () { cur && cur.ui && cur.ui.showDone && cur.ui.showDone(); }, 0);
   }
 
   // per-second timer (counts only while the game screen is visible and unfinished)
@@ -258,7 +290,7 @@
     if (st.daily) S.daily[st.daily + ':' + gid] = true;
     persist(true);
     if (!revealed) { sound('win'); celebrate(); }
-    setTimeout(function () { showDoneSheet(); }, revealed ? 300 : 900);
+    setTimeout(function () { showDoneSheet(); }, revealed ? 300 : 1500);
   }
   function showDoneSheet() {
     if (!cur) return;
@@ -271,28 +303,31 @@
   }
   function celebrate() {
     var fx = $('#fx'), bits = ['\u{1F338}', '\u{1F33F}', '\u{1FAB4}', '\u2728', '\u{1F33C}', '\u{1F335}'];
+    fx.innerHTML = '';
+    var bw = document.createElement('div'); bw.className = 'bloom-wrap'; bw.innerHTML = PC.ART.bloom(); fx.appendChild(bw);
+    setTimeout(function () { bw.remove(); }, 3400);
     for (var i = 0; i < 22; i++) {
       var s = document.createElement('span'); s.className = 'petal'; s.textContent = bits[i % bits.length];
-      s.style.left = (Math.random() * 96) + 'vw'; s.style.animationDelay = (Math.random() * 0.8) + 's'; s.style.fontSize = (24 + Math.random() * 22) + 'px';
-      fx.appendChild(s); setTimeout(function (el) { el.remove(); }.bind(null, s), 4200);
+      s.style.left = (Math.random() * 96) + 'vw'; s.style.animationDelay = (0.3 + Math.random() * 0.9) + 's'; s.style.fontSize = (22 + Math.random() * 20) + 'px';
+      fx.appendChild(s); setTimeout(function (el) { el.remove(); }.bind(null, s), 4600);
     }
   }
 
   /* ---------- board fitting ---------- */
   function isLandscape() { return window.innerWidth > window.innerHeight && window.innerWidth >= 700; }
   // returns a cell size that fits cols x rows into the element's width and the remaining viewport height
-  function fit(el, cols, rows, reserve, aspect, topEl, maxCell) {
+  function fit(el, cols, rows, reserve, aspect, topEl, maxCell, minCell) {
     aspect = aspect || 1;
     var w = el.clientWidth || window.innerWidth - 24;
     var top = (topEl || el).getBoundingClientRect().top + window.scrollY;
     var avH = window.innerHeight - top - (isLandscape() ? 14 : (reserve || 0));
-    if (avH < window.innerHeight * 0.5) avH = window.innerHeight * (isLandscape() ? 0.9 : 0.62);
+    if (avH < window.innerHeight * 0.5 && !isPhone()) avH = window.innerHeight * (isLandscape() ? 0.9 : 0.62);
     var cell = Math.floor(Math.min(w / cols, avH / (rows * aspect)));
-    return Math.max(24, Math.min(cell, maxCell || 96));
+    return Math.max(minCell || 24, Math.min(cell, maxCell || 96));
   }
 
   var api = {
-    t: t, esc: esc, sound: sound, toast: toast, sheet: sheet, confirm: confirmIt, fit: fit, isLandscape: isLandscape,
+    t: t, esc: esc, sound: sound, toast: toast, sheet: sheet, confirm: confirmIt, fit: fit, isLandscape: isLandscape, isPhone: isPhone,
     save: function () { persist(); }, finish: finish, showDoneSheet: showDoneSheet,
     lang: lang, settings: function () { return S.settings; }, setSetting: function (k, v) { S.settings[k] = v; persist(); },
     themes: themes, themeName: themeName, memSetName: memSetName, memLabel: memLabel,
@@ -301,12 +336,18 @@
   PC.api = api;
 
   // test hook
-  window.__pc = { S: function () { return S; }, cur: function () { return cur; }, render: render, dailyInfo: dailyInfo, persist: persist, today: today };
+  window.__pc = { isPhone: isPhone, effScale: effScale, S: function () { return S; }, cur: function () { return cur; }, render: render, dailyInfo: dailyInfo, persist: persist, today: today };
 
   /* ---------- boot ---------- */
+  // a big text size saved earlier would crowd a phone screen: clamp it there
+  if (isPhone() && S.settings.scale > PHONE_MAX_SCALE) { S.settings.scale = PHONE_MAX_SCALE; persist(); }
   applyScale(); applyLang();
   var resizeT = null;
-  window.addEventListener('resize', function () { clearTimeout(resizeT); resizeT = setTimeout(function () { if (cur && cur.ui && cur.ui.layout) cur.ui.layout(); }, 120); });
+  var wasPhone = isPhone();
+  window.addEventListener('resize', function () { clearTimeout(resizeT); resizeT = setTimeout(function () {
+    applyScale();
+    if (isPhone() !== wasPhone) { wasPhone = isPhone(); if (!settingsOpen()) render(); return; }
+    if (cur && cur.ui && cur.ui.layout) cur.ui.layout(); }, 120); });
   document.addEventListener('keydown', function (e) {
     if ($('#sheet').className === 'open') { if (e.key === 'Escape') closeSheet(); return; }
     if (cur && cur.ui && cur.ui.onKey && !e.metaKey && !e.ctrlKey && !e.altKey) cur.ui.onKey(e);

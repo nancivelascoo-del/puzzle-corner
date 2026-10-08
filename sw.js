@@ -1,17 +1,20 @@
 /* Puzzle Corner service worker: precache everything, serve cache-first, works offline.
    Bump VERSION whenever any file changes so the update rolls out on the next online visit. */
-var VERSION = 'puzzle-corner-v1';
+var VERSION = 'puzzle-corner-v2';
 var ASSETS = [
   './',
   './index.html',
   './style.css',
   './data.js',
-  './data-tl.js',
   './i18n.js',
+  './art.js',
   './engine.js',
   './games.js',
   './app.js',
   './manifest.webmanifest',
+  './fonts/atkinson-400.woff2',
+  './fonts/atkinson-700.woff2',
+  './fonts/fraunces-600.woff2',
   './icons/apple-touch-icon.png',
   './icons/favicon-32.png',
   './icons/icon-192.png',

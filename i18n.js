@@ -1,4 +1,4 @@
-/* Puzzle Corner UI words: English and everyday Tagalog. */
+/* Puzzle Corner UI words. */
 (function (G) {
   'use strict';
   var PC = G.PC = G.PC || {};
@@ -48,67 +48,17 @@
       su_pick: 'Tap a square first.', su_given: 'That number is part of the puzzle.',
       su_almost: "Almost! Some numbers don't fit yet. Try Check.", su_checkOk: 'So far, so good! No mistakes.', su_checkBad: '{n} numbers are not right. They are marked in red.',
       // scramble
-      sc_name: 'Word Scramble', sc_desc: 'Put the mixed-up letters in order',
+      sc_name: 'Word Scramble', sc_short: 'Scramble', sc_desc: 'Put the mixed-up letters in order',
       sc_how: 'Tap the letters in the right order to spell the word. Tap a letter in your answer to send it back.',
       sc_wordN: 'Word {a} of {b}', sc_cat: 'Theme: {c}', sc_starts: 'It starts with "{l}".', sc_shuffle: 'Shuffle', sc_clear: 'Clear',
       sc_notQuite: 'Not quite. Try again!', sc_correct: 'Yes! {w}', sc_next: 'Next word', sc_show: 'Show word', sc_was: 'The word was {w}',
       // memory
-      mm_name: 'Memory Match', mm_desc: 'Find the matching picture pairs',
+      mm_name: 'Memory Match', mm_short: 'Memory', mm_desc: 'Find the matching picture pairs',
       mm_how: 'Tap two cards to turn them over. If the pictures match, they stay face up. Find all the pairs!',
-      mm_pairs: 'Pairs found: {a} of {b}', mm_moves: 'Turns: {n}', mm_peek: 'Peek', mm_set: 'Pictures: {s}'
-    },
-    tl: {
-      greetMorning: 'Magandang umaga!', greetAfternoon: 'Magandang hapon!', greetEvening: 'Magandang gabi!',
-      homeSub: 'Pumili ng puzzle at dahan-dahan lang. Kusa itong nase-save.',
-      language: 'Wika', textSize: 'Laki ng letra', smaller: 'Paliitin ang letra', larger: 'Palakihin ang letra',
-      sound: 'Tunog', on: 'Bukas', off: 'Sarado', newShort: 'Bago',
-      timerSetting: 'Orasan', timerOn: 'Orasan: Bukas', timerOff: 'Orasan: Sarado',
-      daily: 'Puzzle Ngayong Araw', dailyPlay: 'Laruin ang puzzle ngayong araw', dailyContinue: 'Ituloy ang puzzle ngayong araw',
-      dailyDone: 'Tapos na para ngayong araw! May bago ulit bukas.', dailyAgain: 'Tingnan ulit',
-      favorites: 'Mga paborito mong tema', favSub: 'Hanap-Salita tungkol sa mga ito',
-      games: 'Mga Laro', solvedN: 'Natapos: {n}', inProgress: 'Hindi pa tapos', play: 'Laruin', cont: 'Ituloy',
-      offlineNote: 'Gumagana kahit walang internet pagkatapos ng unang bukas. Walang ads, walang sign-in.',
-      home: 'Bumalik', easy: 'Madali', medium: 'Katamtaman', hard: 'Mahirap', newPuzzle: 'Bagong puzzle',
-      howTo: 'Paano laruin:', hint: 'Tulong', reveal: 'Ipakita', undo: 'Ibalik', erase: 'Burahin', check: 'Suriin',
-      theme: 'Tema', topic: 'Paksa', anyTheme: 'Halo-halong tema', chooseTheme: 'Pumili ng tema', chooseTopic: 'Pumili ng paksa',
-      cancel: 'Huwag na', close: 'Isara', yesNew: 'Oo, bago na',
-      confirmNew: 'Magsimula ng bagong puzzle? Mapapalitan ang ginagawa mo ngayon.',
-      confirmReveal: 'Ipakita lahat ng sagot? Matatapos na ang puzzle.', yesReveal: 'Oo, ipakita',
-      wellDone: 'Ang galing mo!', solvedMsg: 'Natapos mo ang puzzle. Magaling!',
-      dailyDoneMsg: 'Natapos mo ang puzzle ngayong araw! Balik ka bukas para sa bago.',
-      revealedTitle: 'Heto ang mga sagot', revealedMsg: 'Puwede kang sumubok ng bago kahit kailan.',
-      timeTaken: 'Oras: {t}', backHome: 'Bumalik sa simula', seeBoard: 'Tingnan ang puzzle',
-      dailyTag: 'Puzzle Ngayong Araw', saved: 'Naka-save',
-      ws_name: 'Hanap-Salita', ws_desc: 'Hanapin ang mga nakatagong salita',
-      ws_how: 'I-tap ang unang letra ng salita, tapos ang huling letra. Puwede ring i-slide ang daliri sa salita.',
-      ws_found: 'Nakita: {a} sa {b}', ws_words: 'Mga hahanapin',
-      ws_notWord: 'Wala iyan sa listahan. Subukan ulit!', ws_straight: 'Pumili ng mga letrang nakahanay nang diretso.',
-      ws_hintMsg: 'Hanapin ang "{w}". Nagsisimula ito sa umiilaw na letra.', ws_tapLast: 'Sige. Ngayon, i-tap ang huling letra.',
-      ws_allFound: 'Nakita mo lahat ng salita!',
-      cw_name: 'Crossword', cw_desc: 'Sagutan ang mga madaling tanong',
-      cw_how: 'I-tap ang isang kahon, tapos pindutin ang mga letra sa ibaba. I-tap ulit ang kahon para lumipat sa Pahalang o Pababa.',
-      across: 'Pahalang', down: 'Pababa', del: 'Burahin', prevClue: 'Bumalik', nextClue: 'Susunod',
-      checkLetter: 'Suriin ang letrang ito', checkWord: 'Suriin ang salitang ito', checkAll: 'Suriin lahat',
-      revealLetter: 'Ipakita ang letrang ito', revealWord: 'Ipakita ang salitang ito', revealAll: 'Ipakita lahat',
-      cw_allGood: 'Tama lahat ng nasagutan mo!', cw_wrongN: 'May {n} letra na kailangang ayusin. Nakapula ang mga ito.',
-      cw_almost: 'Malapit na! May ilang kahon na hindi pa tama. Subukan ang Suriin.',
-      kbScreen: 'Keyboard: Malalaking letra', kbDevice: 'Keyboard: Sa device', topicMixed: 'Halo-halo', topicPlants: 'Halaman', topicHome: 'Paglilinis at Bahay',
-      su_name: 'Sudoku', su_desc: 'Punan ng 1 hanggang 9 ang mga kahon',
-      su_how: 'Sa bawat linyang pahalang, bawat linyang pababa, at bawat 3×3 na kahon, dapat may 1 hanggang 9 nang tig-iisa. I-tap ang kahon, tapos ang numero.',
-      notesOn: 'Tala: Bukas', notesOff: 'Tala: Sarado', mistakesOn: 'Ipakita ang mali: Bukas', mistakesOff: 'Ipakita ang mali: Sarado',
-      su_pick: 'Mag-tap muna ng kahon.', su_given: 'Bahagi ng puzzle ang numerong iyan.',
-      su_almost: 'Malapit na! May mga numerong hindi pa tama. Subukan ang Suriin.', su_checkOk: 'Ayos! Wala pang mali.', su_checkBad: 'May {n} numerong mali. Nakapula ang mga ito.',
-      sc_name: 'Buuin ang Salita', sc_desc: 'Ayusin ang mga gulong letra',
-      sc_how: 'I-tap ang mga letra ayon sa tamang ayos para mabuo ang salita. I-tap ang letra sa sagot para ibalik ito.',
-      sc_wordN: 'Salita {a} sa {b}', sc_cat: 'Tema: {c}', sc_starts: 'Nagsisimula ito sa "{l}".', sc_shuffle: 'Haluin', sc_clear: 'Burahin lahat',
-      sc_notQuite: 'Hindi pa tama. Subukan ulit!', sc_correct: 'Tama! {w}', sc_next: 'Susunod na salita', sc_show: 'Ipakita ang salita', sc_was: 'Ang salita ay {w}',
-      mm_name: 'Hanapin ang Kapares', mm_desc: 'Hanapin ang magkaparehong larawan',
-      mm_how: 'Mag-tap ng dalawang card para buksan. Kapag magkapareho ang larawan, mananatili silang bukas. Hanapin lahat ng kapares!',
-      mm_pairs: 'Kapares: {a} sa {b}', mm_moves: 'Tira: {n}', mm_peek: 'Silipin', mm_set: 'Larawan: {s}'
+      mm_pairs: 'Pairs found: {a} of {b}', mm_moves: 'Turns: {n}', mm_peek: 'Peek', mm_set: 'Pictures: {s}',
+      settings: 'Settings', settingsTitle: 'Settings', difficulty: 'Difficulty', done: 'Done', gotIt: 'Got it', howShort: 'How to play', wordsToFind: 'Words to find'
     }
   };
-  PC.DAYS_TL = ['Linggo', 'Lunes', 'Martes', 'Miyerkules', 'Huwebes', 'Biyernes', 'Sabado'];
-  PC.MONTHS_TL = ['Enero', 'Pebrero', 'Marso', 'Abril', 'Mayo', 'Hunyo', 'Hulyo', 'Agosto', 'Setyembre', 'Oktubre', 'Nobyembre', 'Disyembre'];
   PC.DAYS_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   PC.MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 })(typeof window !== 'undefined' ? window : globalThis);
