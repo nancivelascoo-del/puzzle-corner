@@ -1,0 +1,13 @@
+{
+  "name": "puzzle-corner",
+  "private": true,
+  "description": "Automated QA checks for Puzzle Corner (the game itself has no build step).",
+  "scripts": {
+    "serve": "node tests/serve.js",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}
