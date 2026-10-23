@@ -5,7 +5,9 @@ The live site only updates from `main`, and **only if every check passes** (see 
 
 ## What is checked
 
-Every check runs in Chromium and WebKit (Safari's engine) at three sizes: iPad landscape (1180×820), iPad portrait (820×1180) and phone (390×844), all with touch.
+Every check runs at three sizes: iPad landscape (1180×820), iPad portrait (820×1180) and phone (390×844), all with touch.
+In GitHub Actions the checks run in the runner's preinstalled Google Chrome (one parallel job per size); locally they run in Chromium and WebKit (Safari's engine) by default.
+After a deploy, a last job confirms the live site is serving the new files and doesn't expose the test files.
 
 - **Every button** (`tests/screens.spec.js`): on the home screen, each of the five games and the daily puzzle, every visible button is tapped from a fresh start and must visibly change something; every popup a button opens (settings, theme picker, "new puzzle?", check/reveal menus…) gets the same treatment. Settings and progress survive closing the app.
 - **Playing** (`tests/play.spec.js`): each game is played to the end through the real buttons on Easy, Medium and Hard and must show "Wonderful!"; the daily puzzle is finished and shows as done; every crossword key, sudoku number, scramble tile/slot and memory card responds.
@@ -27,5 +29,6 @@ npm ci
 npx playwright install --with-deps chromium webkit
 npm test                               # everything
 BROWSERS=chromium npx playwright test  # quicker, Chromium only
+BROWSERS=chrome ONLY_SIZE=phone npx playwright test  # what one CI job runs
 npx playwright test tests/play.spec.js --project=webkit-phone
 ```
